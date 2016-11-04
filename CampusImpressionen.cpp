@@ -29,6 +29,9 @@ bool myfunc(hist_vec_pair_type const & a, hist_vec_pair_type const & b)
      return a.second != b.second?  a.second > b.second : a.first > b.first;
 };
 
+#define	CHARCOUNT	3
+#define	ABC_SIZE	27
+
 
 int main(int argc, char *argv[])
 {
@@ -65,6 +68,13 @@ int main(int argc, char *argv[])
 
     file.close();
 
+
+    if(input.size()%CHARCOUNT != 0)
+    {
+		printf("Invalid character count[%i\%(%i) = %i] :(!\n", input.size(), CHARCOUNT, input.size()%CHARCOUNT);
+		exit(EXIT_FAILURE);
+    }
+
     std::vector<std::string> text;
     typedef std::map<std::string, uint16_t> histo_map_type;
     histo_map_type histo_map;
@@ -74,24 +84,26 @@ int main(int argc, char *argv[])
 
 
     /* handle inpt data */
-    for(int i=0;i<input.size()-2;i+=3)
+    for(int i=0;i<input.size()-CHARCOUNT-1;i+=CHARCOUNT)
     {
+    	std::string tmpSubStr = input.substr(i,CHARCOUNT);
+
     	/* put "character" into array */
-    	text.push_back(input.substr(i,3));
+    	text.push_back(tmpSubStr);
 
     	/* create frequency distribution */
-    	histo_map_type::iterator map_it = histo_map.find(input.substr(i,3));
+    	histo_map_type::iterator map_it = histo_map.find(tmpSubStr);
 
     	if(map_it == histo_map.end())
     	{//didn't find
-    		histo_map[input.substr(i,3)] = 1;
+    		histo_map[tmpSubStr] = 1;
     	}
     	else
     	{//found it
-    		histo_map[input.substr(i,3)]++;
+    		histo_map[tmpSubStr]++;
     	}
 
-    	printf("[%i]:%s\n", i, input.substr(i,3).c_str());
+    	printf("[%i]:%s\n", i, tmpSubStr.c_str());
     }
 
     /* put frequency distribution into sortable container @todo maby we can do this in previous step */
@@ -103,7 +115,7 @@ int main(int argc, char *argv[])
     //sort frequency distribution
     std::sort(histo_vec.begin(), histo_vec.end(), &myfunc);
 
-//    char table[26] = {
+//    char table[ABC_SIZE] = {
 //    		'a', 'b', 'c', 'd', 'e',
 //    		'f', 'g', 'h', 'i', 'j',
 //    		'k', 'l', 'm', 'n', 'o',
@@ -112,13 +124,13 @@ int main(int argc, char *argv[])
 //    		'z'
 //    };
 
-    char table[26] = {
-    		' ', 'e', 'n', 'i', 's',
-    		'r', 'a', 't', 'd', 'h',
-    		'u', 'l', 'c', 'g', 'm',
-    		'o', 'b', 'w', 'f', 'k',
-    		'z', 'p', 'v', 'j', 'y',
-    		'x'
+    char table[ABC_SIZE] = {
+    		' ', 'E', 'N', 'T', 'A',
+    		'I', 'U', 'H', 'R', 'O',
+    		'S', 'D', 'M', 'K', 'C',
+    		'G', 'L', 'Z', 'B', 'P',
+    		'F', 'W', 'J', 'V', 'X',
+    		'Y', 'q'
     };
 
     // create lookup table frequency distribution <> character
@@ -128,17 +140,33 @@ int main(int argc, char *argv[])
     int pos=0;
     for(histo_vec_type::iterator vec_it = histo_vec.begin();vec_it != histo_vec.end();++vec_it)
     {
-    	lookup[vec_it->first] = table[pos];
-    	printf("[%i]\t%s\t(%i):\t%c\n",pos, vec_it->first.c_str(), vec_it->second, table[pos]);
+    	if(pos < ABC_SIZE)
+    	{
+    		lookup[vec_it->first] = table[pos];
+    		printf("[%i]\t%s\t(%i):\t'%c'\n",pos, vec_it->first.c_str(), vec_it->second, table[pos]);
+    	}
+    	else
+    	{
+    		printf("[%i]\t%s\t(%i):\t%s\n",pos, vec_it->first.c_str(), vec_it->second, "out of range");
+    	}
     	pos++;
     }
 
     printf("\n");
 
+    pos=0;
     // print text by lookup table
     for(std::vector<std::string>::iterator textpos = text.begin();textpos!=text.end();++textpos )
     {
+
     	printf("%c", lookup[*textpos]);
+    	pos++;
+
+    	if(lookup[*textpos] == ' ' && (pos > 50))
+    	{
+    		printf("\n");
+    		pos = 0;
+    	}
     }
 
 	return 0;
